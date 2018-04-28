@@ -23,13 +23,40 @@ const StorageCtrl = (function() {
     },
     getItemFromStorage: function() {
       let items;
-      if(localStorage.getItem("items") === null){
+      if (localStorage.getItem("items") === null) {
         items = [];
       } else {
         items = JSON.parse(localStorage.getItem("items"));
       }
       return items;
     },
+    updateItemStorage: function(updatedItem) {
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      items.forEach((item, index) => {
+        if (updatedItem.id === item.id) {
+          items.splice(index, 1, updatedItem);
+        }
+      });
+
+      // Re Set LS
+      localStorage.setItem("items", JSON.stringify(items));
+    },
+    deleteItemFromStorage: function(id) {
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      items.forEach((item, index) => {
+        if (id === item.id) {
+          items.splice(index, 1);
+        }
+      });
+
+      // Re Set LS
+      localStorage.setItem("items", JSON.stringify(items));
+    },
+    clearItemsFromStorage: function() {
+      localStorage.removeItem("items");
+    }
   };
 })();
 
@@ -384,6 +411,9 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl) {
     // Add total calories to UI
     UICtrl.showTotalCalories(totalCalories);
 
+    // Update local storage
+    StorageCtrl.updateItemStorage(updatedItem);
+
     UICtrl.clearEditsState();
 
     e.preventDefault();
@@ -405,6 +435,9 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl) {
     // Add total calories to UI
     UICtrl.showTotalCalories(totalCalories);
 
+    // Delete from local storage
+    StorageCtrl.deleteItemFromStorage(currentItem.id);
+
     UICtrl.clearEditsState();
 
     e.preventDefault();
@@ -415,15 +448,16 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl) {
     // Delete all items from data structure
     ItemCtrl.clearAllItems();
 
-    // Remove from UI
-    UICtrl.removeItems();
-
     // Get total calories
     const totalCalories = ItemCtrl.getTotalCalories();
     // Add total calories to UI
     UICtrl.showTotalCalories(totalCalories);
 
-    UICtrl.clearEditsState();
+    // Remove from UI
+    UICtrl.removeItems();
+
+    // Clear from local storage
+    StorageCtrl.clearItemsFromStorage();
 
     // Hide the UL
     UICtrl.hideList();
